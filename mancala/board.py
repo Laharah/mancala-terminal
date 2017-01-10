@@ -8,7 +8,7 @@ State = namedtuple("State", "top, bottom, turn")
 class Board:
     TOP=0
     BOTTOM=1
-    def __init__(self, state=None, seeds=4):
+    def __init__(self, seeds=4):
         'players will be top and botom'
         self.top = [0]+ [seeds]*6
         self.bottom = [0] + [seeds]*6
