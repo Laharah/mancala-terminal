@@ -5,16 +5,19 @@ from collections import namedtuple
 Score = namedtuple("Score", "TOP, BOTTOM")
 State = namedtuple("State", "top, bottom, turn")
 
+
 class Board:
-    TOP=0
-    BOTTOM=1
+    TOP = 0
+    BOTTOM = 1
+
     def __init__(self, seeds=4):
         'players will be top and botom'
-        self.top = [0]+ [seeds]*6
-        self.bottom = [0] + [seeds]*6
+        self.top = [0] + [seeds] * 6
+        self.bottom = [0] + [seeds] * 6
         self.turn = self.TOP
 
     def get_state(self):
+        'returns a serialized and hashable version of this boards state'
         return State(tuple(self.top), tuple(self.bottom), self.turn)
 
     @classmethod
@@ -36,7 +39,6 @@ class Board:
     @property
     def bottom_store(self):
         return self.bottom[0]
-
 
     @property
     def score(self):
