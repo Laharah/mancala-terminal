@@ -15,6 +15,7 @@ class State:
     def __init__(self, seeds=4, *, top=None, bottom=None, turn=0):
         self.top = tuple(top) if top else tuple([seeds] * 6 + [0])
         self.bottom = tuple(bottom) if bottom else tuple([seeds] * 6 + [0])
+        assert len(self.top) == len(self.bottom) == 7, 'top and bottom must be of lenght 7'
         self._turn = turn
 
     @property
