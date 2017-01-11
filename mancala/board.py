@@ -78,6 +78,8 @@ class State:
     def after_move(self, move):
         'move is the index that player self.turn wants to use. yields the resulting state'
         # constructs a looping iterator for placing seeds
+        if not 0 <= move < 6:
+            raise ValueError('houses 1 through 5 only')
         if self.turn == self.TOP:
             move += 7
 
@@ -91,6 +93,7 @@ class State:
         i_cycle = itertools.dropwhile(lambda i: i <= move, i_cycle)
         seeds = new_vals[move]
         new_vals[move] = 0
+        index = move
 
         while seeds:
             index = next(i_cycle)
