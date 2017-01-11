@@ -51,10 +51,12 @@ def test_state_hashable(sample_board):
     d[0] = sample_board.get_state()
     assert d[0] == sample_board.get_state()
 
+
 def test_board_not_hasable(sample_board):
     d = {}
     with pytest.raises(TypeError):
         d[sample_board] = 'error'
+
 
 def test_from_state(sample_board):
     state = sample_board.get_state()
@@ -63,6 +65,7 @@ def test_from_state(sample_board):
     assert b.top == sample_board.top
     assert b.bottom == sample_board.bottom
     assert b.turn == sample_board.turn
+
 
 def test_call(sample_board):
     b1 = Board()
@@ -78,7 +81,8 @@ def test_call(sample_board):
     assert b1.turn == b1.BOTTOM
     assert b1.score.bottom == 0
     assert b1.bottom[:2] == [5, 1]
-    assert b1.top == [4,4,0,0,6,6,2]
+    assert b1.top == [4, 4, 0, 0, 6, 6, 2]
+
 
 def test_call_steal():
     b1 = Board()
@@ -92,3 +96,12 @@ def test_call_steal():
     assert b1.top[2] == 0
 
 
+def test_game_over():
+    b = Board()
+    b.bottom = [0] * 5 + [1] + [18]
+    assert b.turn == b.BOTTOM
+    print(b)
+    b(5)
+    assert b.turn is None
+    assert b.score.top == 4 * 6
+    assert b.score.bottom == 19
