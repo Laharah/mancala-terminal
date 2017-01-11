@@ -13,8 +13,8 @@ class State:
     BOTTOM = 1
 
     def __init__(self, seeds=4, *, top=None, bottom=None, turn=None):
-        self.top = tuple(top) if top else tuple([0] + [seeds] * 6)
-        self.bottom = tuple(bottom) if bottom else tuple([0] + [seeds] * 6)
+        self.top = tuple(top) if top else tuple([seeds] * 6 + [0])
+        self.bottom = tuple(bottom) if bottom else tuple([seeds] * 6 + [0])
         self._turn = turn if turn else self.TOP
 
     @property
@@ -58,11 +58,11 @@ class State:
 
     @property
     def top_store(self):
-        return self.top[0]
+        return self.top[-1]
 
     @property
     def bottom_store(self):
-        return self.bottom[0]
+        return self.bottom[-1]
 
     @property
     def score(self):

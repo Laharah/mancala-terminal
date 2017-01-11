@@ -14,7 +14,7 @@ def sample_board():
 
 def test_create():
     b = Board()
-    assert b.top == b.bottom == [0, 4, 4, 4, 4, 4, 4]
+    assert b.top == b.bottom == [4, 4, 4, 4, 4, 4, 0]
 
 
 def test_swap_turn():
@@ -42,7 +42,7 @@ def test_score():
 
 def test_get_state():
     b = Board()
-    initial_side = (0, 4, 4, 4, 4, 4, 4)
+    initial_side = (4, 4, 4, 4, 4, 4, 0)
     assert b.get_state() == (initial_side, initial_side, b.TOP)
 
 
