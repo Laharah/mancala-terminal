@@ -51,6 +51,10 @@ def test_state_hashable(sample_board):
     d[0] = sample_board.get_state()
     assert d[0] == sample_board.get_state()
 
+def test_board_not_hasable(sample_board):
+    d = {}
+    with pytest.raises(TypeError):
+        d[sample_board] = 'error'
 
 def test_from_state(sample_board):
     state = sample_board.get_state()
