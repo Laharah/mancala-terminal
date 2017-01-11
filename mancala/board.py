@@ -3,7 +3,6 @@ import itertools
 from collections import namedtuple
 
 Score = namedtuple("Score", "top, bottom")
-State = namedtuple("State", "top, bottom, turn")
 
 
 class State:
