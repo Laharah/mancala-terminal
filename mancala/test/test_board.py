@@ -95,6 +95,7 @@ def test_call_steal():
     assert b1.bottom[3] == 5
     assert b1.top[2] == 0
 
+
 def test_move_on_empty_house():
     b = Board()
     b.bottom[2] == 0
@@ -103,11 +104,27 @@ def test_move_on_empty_house():
     b(2)
     assert b.get_state() == state
 
+
+def test_skip_opponent_store():
+    b = Board()
+    b.top[5] = 10
+    bottom_store = b.bottom_store
+    b.turn = b.TOP
+    b(5)
+    assert b.bottom_store == bottom_store
+    b.bottom[5] = 10
+    top_store = b.top_store
+    assert b.turn == b.BOTTOM
+    b(5)
+    assert b.top_store == top_store
+
+
 def test_illegal_move():
     board = Board()
     for move in (6, 10, -2):
         with pytest.raises(ValueError):
             board(move)
+
 
 def test_game_over():
     b = Board()
