@@ -15,7 +15,8 @@ class State:
     def __init__(self, seeds=4, *, top=None, bottom=None, turn=0):
         self.top = tuple(top) if top else tuple([seeds] * 6 + [0])
         self.bottom = tuple(bottom) if bottom else tuple([seeds] * 6 + [0])
-        assert len(self.top) == len(self.bottom) == 7, 'top and bottom must be of lenght 7'
+        assert len(self.top) == len(
+            self.bottom) == 7, 'top and bottom must be of lenght 7'
         self._turn = turn
 
     @property
@@ -115,7 +116,7 @@ class State:
                 new_vals[index] += new_vals[opposite]
                 new_vals[opposite] = 0
 
-        if sum(new_vals[:6] if self.turn == self.BOTTOM else new_vals[7:-1]) == 0:
+        if sum(new_vals[:6]) == 0 or sum(new_vals[7:-1]) == 0:
             # game is over
             new_vals[6] += sum(new_vals[:6])
             new_vals[-1] += sum(new_vals[7:-1])

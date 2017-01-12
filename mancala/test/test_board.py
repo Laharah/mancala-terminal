@@ -119,6 +119,19 @@ def test_skip_opponent_store():
     assert b.top_store == top_store
 
 
+def test_end_on_steal():
+    b = Board()
+    b.top = [0] * 7
+    b.bottom = [0] * 7
+    b.top[0] = 1
+    b.bottom[4] = 1
+    b(4)
+    assert sum(b.top) == 0
+    assert sum(b.bottom) == 2
+    assert b.turn is None
+    assert b.bottom_store == 2
+
+
 def test_illegal_move():
     board = Board()
     for move in (6, 10, -2):
