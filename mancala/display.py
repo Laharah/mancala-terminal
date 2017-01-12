@@ -2,7 +2,7 @@ def show_board(board):
     top = board.top
     bottom = board.bottom
     print(' ' * 6, end='')
-    for i in range(5, -1, -1):
+    for i in range(6, 0, -1):
         print('{:^5}'.format(i), end='')
     print()
     h_border = '-' * 43
@@ -13,7 +13,7 @@ def show_board(board):
     print(construct_bins(bottom[:-1]))
     print(h_border)
     print(' ' * 6, end='')
-    for i in range(6):
+    for i in range(1, 7):
         print('{:^5}'.format(i), end='')
 
 
