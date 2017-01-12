@@ -9,15 +9,16 @@ def show_board(board):
     print(h_border)
     print(construct_bins(top[-2::-1]))
     print('|' + ' {:>2}  '.format(top[-1]) + '-' * 31 + ' ' * 5 + '|')
-    print('|' + ' '*5 + '-' * 31 + ' {:>2}  '.format(bottom[-1])  + '|')
+    print('|' + ' ' * 5 + '-' * 31 + ' {:>2}  '.format(bottom[-1]) + '|')
     print(construct_bins(bottom[:-1]))
     print(h_border)
     print(' ' * 6, end='')
     for i in range(6):
         print('{:^5}'.format(i), end='')
 
+
 def construct_bins(values):
     glyf = [' ']
     glyf.extend(chr(o) for o in range(ord('\u2460'), ord('\u2474')))
     bins = ''.join('| {}  '.format(glyf[v]) for v in values)
-    return '|     '+ bins+ '|     |'
+    return '|     ' + bins + '|     |'

@@ -1,13 +1,19 @@
 from .board import Board
 
+
 class Game:
     'p1 and p2 are functions that return a move when given a board'
+
     def __init__(self, player_bottom, player_top):
         self.board = Board()
         self.top = player_top
         self.bottom = player_bottom
-        self.player = {self.board.TOP: self.top, self.board.BOTTOM: self.bottom, None:None}
-        self.player_number = {self.top:Board.TOP, self.bottom:Board.BOTTOM, None:None}
+        self.player = {
+            self.board.TOP: self.top,
+            self.board.BOTTOM: self.bottom,
+            None: None
+        }
+        self.player_number = {self.top: Board.TOP, self.bottom: Board.BOTTOM, None: None}
 
     @property
     def turn(self):
