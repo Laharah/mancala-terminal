@@ -86,6 +86,15 @@ def test_call(sample_board):
     assert b1.top == [4, 4, 0, 0, 6, 6, 2]
 
 
+def test_current_side():
+    b = Board()
+    assert b.current_side is b.bottom
+    b(2)
+    assert b.current_side is b.bottom
+    b(1)
+    assert b.current_side is b.top
+
+
 def test_call_steal():
     b1 = Board()
     b1.bottom[2] = 1
