@@ -1,6 +1,7 @@
 import pytest
 from ..board import Board
 
+from .. import errors
 
 @pytest.fixture
 def sample_board():
@@ -132,12 +133,19 @@ def test_end_on_steal():
     assert b.bottom_store == 2
 
 
-def test_illegal_move():
+def test_out_of_bounds_move():
     board = Board()
     for move in (6, 10, -2):
-        with pytest.raises(ValueError):
+        with pytest.raises(IndexError):
             board(move)
 
+def test_house_must_have_seeds():
+    b = Board()
+    b.bottom[2] = 0
+    assert b.turn == b.BOTTOM
+    with pytest.raises(errors.IllegalMove) as e:
+        b(2)
+    assert isinstance(e.value, errors.MancalaError)
 
 def test_game_over():
     b = Board()

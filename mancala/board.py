@@ -1,6 +1,7 @@
 'simulates a board for mancala'
 import itertools
 from collections import namedtuple
+from .errors import IllegalMove
 
 Score = namedtuple("Score", "top, bottom")
 
@@ -80,7 +81,7 @@ class State:
         'move is the index that player self.turn wants to use. yields the resulting state'
         # constructs a looping iterator for placing seeds
         if not 0 <= move < 6:
-            raise ValueError('houses 0 through 5 only')
+            raise IndexError('houses 0 through 5 only')
         if self.turn == self.TOP:
             move += 7
 
@@ -93,6 +94,8 @@ class State:
 
         i_cycle = itertools.dropwhile(lambda i: i <= move, i_cycle)
         seeds = new_vals[move]
+        if not seeds:
+            raise IllegalMove('you must choose a house with seeds!')
         new_vals[move] = 0
         index = move
 
