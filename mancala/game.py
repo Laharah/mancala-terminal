@@ -62,4 +62,3 @@ class Game:
                     raise
             else:
                 valid_move = True
-        

@@ -3,6 +3,7 @@ from ..board import Board
 
 from .. import errors
 
+
 @pytest.fixture
 def sample_board():
     b = Board()
@@ -139,6 +140,7 @@ def test_out_of_bounds_move():
         with pytest.raises(IndexError):
             board(move)
 
+
 def test_house_must_have_seeds():
     b = Board()
     b.bottom[2] = 0
@@ -146,6 +148,7 @@ def test_house_must_have_seeds():
     with pytest.raises(errors.IllegalMove) as e:
         b(2)
     assert isinstance(e.value, errors.MancalaError)
+
 
 def test_game_over():
     b = Board()

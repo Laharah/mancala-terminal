@@ -6,6 +6,7 @@ from ..game import Game
 from ..board import Board
 from ..errors import IllegalMove
 
+
 @pytest.fixture
 def random_player():
     def p(board):
@@ -78,6 +79,7 @@ def test_requery_on_invalid():
     assert p1.call_count == 3
     assert not p2.called
 
+
 def test_raise_error_after_4_invalid_moves():
     p1 = Mock()
     p1.side_effect = [1, 22, 1, 1]
@@ -87,4 +89,3 @@ def test_raise_error_after_4_invalid_moves():
     with pytest.raises(IllegalMove):
         g()
     assert p1.call_count == 4
-
