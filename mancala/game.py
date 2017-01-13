@@ -1,4 +1,5 @@
 from .board import Board
+from .errors import IllegalMove
 
 
 class Game:
@@ -48,6 +49,17 @@ class Game:
     def execute_turn(self, player=None):
         'executes a single turn, optional player to override player function'
         player = player if player else self.player[self.board.turn]
-        safe_board = Board.from_state(self.board.get_state())
-        move = player(safe_board)
-        self.board(move)
+        valid_move = False
+        invalid_move_counter = 0
+        while not valid_move:
+            safe_board = Board.from_state(self.board.get_state())
+            move = player(safe_board)
+            try:
+                self.board(move)
+            except (IndexError, IllegalMove):
+                invalid_move_counter += 1
+                if invalid_move_counter >= 4:
+                    raise
+            else:
+                valid_move = True
+        

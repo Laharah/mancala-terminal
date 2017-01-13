@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 from ..game import Game
 from ..board import Board
-
+from ..errors import IllegalMove
 
 @pytest.fixture
 def random_player():
@@ -66,3 +66,25 @@ def test_game_loop(random_player):
     assert g.turn == None
     assert g.game_over
     print(g.score)
+
+
+def test_requery_on_invalid():
+    p1 = Mock()
+    p1.side_effect = [1, 10, 2]
+    p2 = Mock()
+    g = Game(p1, p2)
+    g.board.bottom[1] = 0
+    g.execute_turn()
+    assert p1.call_count == 3
+    assert not p2.called
+
+def test_raise_error_after_4_invalid_moves():
+    p1 = Mock()
+    p1.side_effect = [1, 22, 1, 1]
+    p2 = Mock()
+    g = Game(p1, p2)
+    g.board.bottom[1] = 0
+    with pytest.raises(IllegalMove):
+        g()
+    assert p1.call_count == 4
+
