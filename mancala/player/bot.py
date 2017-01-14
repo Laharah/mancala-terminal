@@ -1,4 +1,6 @@
 import functools
+import random
+
 from ..board import State
 
 
@@ -29,8 +31,8 @@ class Bot:
         other_side = state.bottom if my_side is state.top else state.top
         my_store = my_side[-1]
         other_store = other_side[-1]
-        my_store += self.canidate_houses(my_side)
-        other_store += self.canidate_houses(other_side)
+        my_store += self.canidate_houses(my_side) / 2
+        other_store += self.canidate_houses(other_side) / 2
         return (my_store - other_store) / 200
 
     @staticmethod
@@ -38,8 +40,10 @@ class Bot:
         size = len(side)
         canidates = 0
         for i in range(size):
-            if side[i] >= size - (i + 1):
+            if side[i] == size - (i + 1):
                 canidates += 1
+            elif side[i] > size - (i + 1):
+                canidates += .5
         return canidates
 
     def utility(self, state, max_depth=5):
@@ -60,19 +64,28 @@ class Bot:
 
         if max_depth <= 0 and state.turn != self.side:
             return self.estimate_utility(state)
+        max_min = max if state.turn == self.side else min
 
-        best_move = max(
+        best_move = max_min(
             self.available_moves(state),
             key=lambda m: self.quality(m, state, max_depth=max_depth - 1))
+
         return self.utility(state.after_move(best_move), max_depth=max_depth)
 
-    def quality(self, move, state, max_depth=4):
+    def quality(self, move, state, max_depth=5):
         return self.utility(state.after_move(move), max_depth=max_depth)
 
     def __call__(self, board):
         if self.side is None: self.side = board.turn
         self.mem_cache = {}
-        moves = sorted((self.quality(m, board), m) for m in self.available_moves(board))
-        print(moves)
-        top_moves = [m for m in moves if board.after_move(m[1]).turn == self.side]
-        return top_moves[-1][1] if top_moves else moves[-1][1]
+        moves = sorted((self.quality(m, board.get_state()), m)
+                       for m in self.available_moves(board))
+        top_moves = [m for m in moves if m[0] == moves[-1][0]]
+        print(moves, end=':')
+        extra_moves = [m for m in top_moves if board.after_move(m[1]).turn == self.side]
+        if extra_moves:
+            move = extra_moves[-1]
+        else:
+            move = random.choice(top_moves)
+        print(move[1] + 1)
+        return move[1]
