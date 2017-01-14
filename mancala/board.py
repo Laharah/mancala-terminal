@@ -10,6 +10,7 @@ class State:
     '''an extension of a namedtuple like object. Board becomes a mutable wrapper for easy
     interaction and progression. Also allows for easy dependancy injection through
     multiple inheratance'''
+    __slots__ = ('top', 'bottom', '_turn')
     TOP = 1
     BOTTOM = 0
 
