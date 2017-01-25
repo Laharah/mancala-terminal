@@ -21,3 +21,4 @@ Currently the game has a crude and poorly optimized bot to play against.
    * 'solve' the game?
    * train a ML replacement for bot?
 * implement fallback to ascii for non utf-8 compliant terminals
+* refactor rule logic into game module for better separation of concerns
