@@ -2,7 +2,7 @@
 import itertools
 from collections import namedtuple
 from .errors import IllegalMove
-from my_utils.decorators import memo
+from .utils import memo
 
 Score = namedtuple("Score", "top, bottom")
 
