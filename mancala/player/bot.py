@@ -1,7 +1,7 @@
 import functools
 import random
 
-from ..board import State
+from ..board import State, after_move
 
 
 class Bot:
@@ -70,10 +70,10 @@ class Bot:
             self.available_moves(state),
             key=lambda m: self.quality(m, state, max_depth=max_depth - 1))
 
-        return self.utility(state.after_move(best_move), max_depth=max_depth)
+        return self.utility(after_move(state, best_move), max_depth=max_depth)
 
     def quality(self, move, state, max_depth=5):
-        return self.utility(state.after_move(move), max_depth=max_depth)
+        return self.utility(after_move(state, move), max_depth=max_depth)
 
     def __call__(self, board):
         if self.side is None: self.side = board.turn
@@ -82,7 +82,7 @@ class Bot:
                        for m in self.available_moves(board))
         top_moves = [m for m in moves if m[0] == moves[-1][0]]
         print(moves, end=':')
-        extra_moves = [m for m in top_moves if board.after_move(m[1]).turn == self.side]
+        extra_moves = [m for m in top_moves if after_move(board, m[1]).turn == self.side]
         if extra_moves:
             move = extra_moves[-1]
         else:
