@@ -24,11 +24,11 @@ class State:
 
     @property
     def top(self):
-        return tuple(self._bstring[7:-1])
+        return self._bstring[7:-1]
 
     @property
     def bottom(self):
-        return tuple(self._bstring[:7])
+        return self._bstring[:7]
 
     @property
     def turn(self):
