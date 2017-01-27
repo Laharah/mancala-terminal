@@ -1,5 +1,6 @@
 'simulates a board for mancala'
 import itertools
+import struct
 from collections import namedtuple
 from .errors import IllegalMove
 from .utils import memo
@@ -11,20 +12,33 @@ class State:
     '''an extension of a namedtuple like object. Board becomes a mutable wrapper for easy
     interaction and progression. Also allows for easy dependancy injection through
     multiple inheratance'''
-    __slots__ = ('top', 'bottom', '_turn')
+    __slots__ = '_bstring'
     TOP = 1
     BOTTOM = 0
+    fmt = 'BBBBBBBBBBBBBBb'
 
     def __init__(self, seeds=4, *, top=None, bottom=None, turn=0):
-        self.top = tuple(top) if top else tuple([seeds] * 6 + [0])
-        self.bottom = tuple(bottom) if bottom else tuple([seeds] * 6 + [0])
-        assert len(self.top) == len(
-            self.bottom) == 7, 'top and bottom must be of length 7'
-        self._turn = turn
+        top = tuple(top) if top else [seeds] * 6 + [0]
+        bottom = tuple(bottom) if bottom else tuple([seeds] * 6 + [0])
+        assert len(top) == len(
+            bottom) == 7, 'top and bottom must be of length 7'
+        self._bstring = struct.pack(self.fmt, *itertools.chain(bottom, top), turn)
+
+    @property
+    def top(self):
+        return tuple(self._bstring[7:-1])
+
+    @property
+    def bottom(self):
+        return tuple(self._bstring[:7])
 
     @property
     def turn(self):
-        return self._turn
+        t = self._bstring[-1]
+        if t == 255:
+            return -1
+        else:
+            return t
 
     @property
     def current_side(self):
@@ -51,22 +65,17 @@ class State:
     @classmethod
     def duplicate(cls, state_like):
         'create new state from an existing state-like object'
-        s = cls()
-        s.top = tuple(state_like.top)
-        s.bottom = tuple(state_like.bottom)
-        s._turn = state_like.turn
-        return s
+        s = state_like
+        n = cls(top=s.top, bottom=s.bottom, turn=s.turn)
+        return n
 
     @classmethod
     def from_tuple(cls, state):
-        s = cls()
-        s.top = tuple(state[0])
-        s.bottom = tuple(state[1])
-        s._turn = state[2]
+        s = cls(top=state[0], bottom=state[1], turn=state[2])
         return s
 
     def __hash__(self):
-        return hash((self.top, self.bottom, self._turn))
+        return hash(self._bstring)
 
     @property
     def top_store(self):
@@ -140,7 +149,7 @@ def after_move(state, move):
         new_vals[6] += sum(new_vals[:6])
         new_vals[-1] += sum(new_vals[7:-1])
         new_vals[:6] = new_vals[7:-1] = [0] * 6
-        new_turn = None
+        new_turn = -1
 
     return state.__class__(bottom=new_vals[:7], top=new_vals[7:], turn=new_turn)
 
@@ -149,9 +158,11 @@ class Board(State):
     'a mutable wrapper over State'
 
     def __init__(self, seeds=4, *, top=None, bottom=None, turn=0):
-        super().__init__(seeds=seeds, top=top, bottom=bottom, turn=turn)
-        self.top = list(self.top)
-        self.bottom = list(self.bottom)
+        self._top = list(top) if top else [seeds] * 6 + [0]
+        self._bottom = list(bottom) if bottom else [seeds] * 6 + [0]
+        assert len(self._top) == len(
+            self._bottom) == 7, 'top and bottom must be of length 7'
+        self._turn = turn
 
     @property
     def turn(self):
@@ -160,6 +171,23 @@ class Board(State):
     @turn.setter
     def turn(self, n):
         self._turn = n
+
+    @property
+    def top(self):
+        return self._top
+
+    @top.setter
+    def top(self, new):
+        self._top = new
+
+    @property
+    def bottom(self):
+        return self._bottom
+
+    @bottom.setter
+    def bottom(self, new):
+        self._bottom = new
+
 
     def __hash__(self):
         raise TypeError('Unhashable type: \'Board\'')

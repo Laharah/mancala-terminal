@@ -139,7 +139,7 @@ def test_end_on_steal():
     b(4)
     assert sum(b.top) == 0
     assert sum(b.bottom) == 2
-    assert b.turn is None
+    assert b.turn == -1
     assert b.bottom_store == 2
 
 
@@ -165,6 +165,6 @@ def test_game_over():
     assert b.turn == b.BOTTOM
     print(b)
     b(5)
-    assert b.turn is None
+    assert b.turn == -1
     assert b.score.top == 4 * 6
     assert b.score.bottom == 19

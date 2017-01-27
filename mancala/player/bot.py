@@ -47,7 +47,7 @@ class Bot:
         return canidates
 
     def utility(self, state, max_depth=5):
-        if state.turn is None:
+        if state.turn == -1:
             score = state.score
             if score.top > score.bottom:
                 winner = state.TOP
@@ -74,7 +74,11 @@ class Bot:
                 return self.utility(after_move(state, move), max_depth=max_depth)
             move_qualities.append((q, move))
 
-        best_move = max_min(move_qualities)
+        try:
+            best_move = max_min(move_qualities)
+        except ValueError:
+            print(state, self.available_moves(state))
+            raise
 
         return self.utility(after_move(state, best_move[1]), max_depth=max_depth)
 

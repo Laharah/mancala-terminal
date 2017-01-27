@@ -24,7 +24,7 @@ def test_wants_to_win():
         move = bot(board)
         assert move == expected
         board(move)
-    assert board.turn is None
+    assert board.turn is -1
     assert board.score == (19, 20)
     print(bot.mem_cache)
 

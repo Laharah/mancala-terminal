@@ -12,7 +12,7 @@ class Game:
         self.player = {
             self.board.TOP: self.top,
             self.board.BOTTOM: self.bottom,
-            None: None
+            -1: None
         }
         self.player_number = {self.top: Board.TOP, self.bottom: Board.BOTTOM, None: None}
 
@@ -43,7 +43,7 @@ class Game:
 
     def __call__(self):
         board = self.board
-        while board.turn is not None:
+        while board.turn != -1:
             self.execute_turn()
 
     def execute_turn(self, player=None):
