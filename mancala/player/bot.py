@@ -9,6 +9,7 @@ class Bot:
         self.side = None
         self.mem_cache = {}
         self.utility = self.memo(self.utility)
+        self._clear_flag = True
 
     def memo(self, func):
         @functools.wraps(func)
@@ -87,7 +88,10 @@ class Bot:
 
     def __call__(self, board):
         if self.side is None: self.side = board.turn
-        self.mem_cache = {}
+        if self._clear_flag:
+            self.mem_cache = {}
+        else:
+            self._clear_flag = True
         moves = sorted((self.quality(m, board.get_state()), m)
                        for m in self.available_moves(board))
         top_moves = [m for m in moves if m[0] == moves[-1][0]]
@@ -95,6 +99,7 @@ class Bot:
         extra_moves = [m for m in top_moves if after_move(board, m[1]).turn == self.side]
         if extra_moves:
             move = extra_moves[-1]
+            self._clear_flag = False
         else:
             move = random.choice(top_moves)
         print(move[1] + 1)
