@@ -75,11 +75,7 @@ class Bot:
                 return self.utility(after_move(state, move), max_depth=max_depth)
             move_qualities.append((q, move))
 
-        try:
-            best_move = max_min(move_qualities)
-        except ValueError:
-            print(state, self.available_moves(state))
-            raise
+        best_move = max_min(move_qualities)
 
         return self.utility(after_move(state, best_move[1]), max_depth=max_depth)
 
