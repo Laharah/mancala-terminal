@@ -66,11 +66,17 @@ class Bot:
             return self.estimate_utility(state)
         max_min = max if state.turn == self.side else min
 
-        best_move = max_min(
-            self.available_moves(state),
-            key=lambda m: self.quality(m, state, max_depth=max_depth - 1))
+        win_state = 1 if max_min is max else -1
+        move_qualities = []
+        for move in self.available_moves(state):
+            q = self.quality(move, state, max_depth=max_depth - 1)
+            if q == win_state:
+                return self.utility(after_move(state, move), max_depth=max_depth)
+            move_qualities.append((q, move))
 
-        return self.utility(after_move(state, best_move), max_depth=max_depth)
+        best_move = max_min(move_qualities)
+
+        return self.utility(after_move(state, best_move[1]), max_depth=max_depth)
 
     def quality(self, move, state, max_depth=5):
         return self.utility(after_move(state, move), max_depth=max_depth)
