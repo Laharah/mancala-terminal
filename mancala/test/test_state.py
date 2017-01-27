@@ -1,5 +1,6 @@
 import pytest
 import itertools
+import struct
 
 from ..board import State
 
@@ -20,7 +21,7 @@ def test_state_init_w_arguments():
 
 
 def test_fixed_board_length():
-    with pytest.raises(AssertionError):
+    with pytest.raises(struct.error):
         s = State(top=range(5))
 
 

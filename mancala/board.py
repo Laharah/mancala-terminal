@@ -18,10 +18,8 @@ class State:
     fmt = 'BBBBBBBBBBBBBBb'
 
     def __init__(self, seeds=4, *, top=None, bottom=None, turn=0):
-        top = tuple(top) if top else [seeds] * 6 + [0]
-        bottom = tuple(bottom) if bottom else tuple([seeds] * 6 + [0])
-        assert len(top) == len(
-            bottom) == 7, 'top and bottom must be of length 7'
+        top = top if top else [seeds] * 6 + [0]
+        bottom = bottom if bottom else [seeds] * 6 + [0]
         self._bstring = struct.pack(self.fmt, *itertools.chain(bottom, top), turn)
 
     @property
