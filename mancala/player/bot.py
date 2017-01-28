@@ -29,7 +29,7 @@ class Bot:
     def estimate_utility(self, state):
         'the estimated utility: store points + 1 for every house that can make it to the store'
         my_side = state.top if self.side == state.TOP else state.bottom
-        other_side = state.bottom if my_side is state.top else state.top
+        other_side = state.bottom if self.side == state.TOP else state.top
         my_store = my_side[-1]
         other_store = other_side[-1]
         my_store += self.canidate_houses(my_side) / 2
@@ -103,5 +103,5 @@ class Bot:
             self._clear_flag = False
         else:
             move = random.choice(top_moves)
-        print(move[1] + 1, self.side, sep=', ')
+        print(move[1] + 1)
         return move[1]

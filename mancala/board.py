@@ -88,7 +88,7 @@ class State:
         return Score(self.top_store, self.bottom_store)
 
     def next_turn(self):
-        return self.BOTTOM if self.turn is self.TOP else self.TOP
+        return self.BOTTOM if self.turn == self.TOP else self.TOP
 
     @staticmethod
     def _opposing_house(index):

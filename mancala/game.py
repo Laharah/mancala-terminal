@@ -14,7 +14,7 @@ class Game:
             self.board.BOTTOM: self.bottom,
             -1: None
         }
-        self.player_number = {self.top: Board.TOP, self.bottom: Board.BOTTOM, None: None}
+        self.player_number = {self.top: Board.TOP, self.bottom: Board.BOTTOM, -1: None}
 
     @property
     def turn(self):
