@@ -15,6 +15,7 @@ def show_board(board):
     print(' ' * 6, end='')
     for i in range(1, 7):
         print('{:^5}'.format(i), end='')
+    print()
 
 
 def construct_bins(values):

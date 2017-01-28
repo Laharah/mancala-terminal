@@ -5,11 +5,12 @@ from ..board import State, after_move
 
 
 class Bot:
-    def __init__(self):
+    def __init__(self, search_depth=8):
         self.side = None
         self.mem_cache = {}
         self.utility = self.memo(self.utility)
         self._clear_flag = True
+        self.search_depth = search_depth
 
     def memo(self, func):
         @functools.wraps(func)
@@ -26,7 +27,7 @@ class Bot:
     def available_moves(state):
         # yield from (i for i, v in enumerate(state.current_side[-1:0:-1]) if v != 0)
         side = state.current_side
-        yield from (i for i in reversed(range(len(side)-1)) if side[i] > 0)
+        yield from (i for i in reversed(range(len(side) - 1)) if side[i] > 0)
 
     def estimate_utility(self, state):
         'the estimated utility: store points + 1 for every house that can make it to the store'
@@ -71,7 +72,10 @@ class Bot:
         if self.side == state.turn:
             v = -10
             for move in self.available_moves(state):
-                v = max(v, self.utility(after_move(state, move), max_depth-1, alpha=alpha, beta=beta))
+                v = max(
+                    v,
+                    self.utility(
+                        after_move(state, move), max_depth - 1, alpha=alpha, beta=beta))
                 alpha = max(alpha, v)
                 if beta <= alpha:
                     break
@@ -79,15 +83,18 @@ class Bot:
         else:
             v = 10
             for move in self.available_moves(state):
-                v = min(v, self.utility(after_move(state, move), max_depth-1, alpha=alpha, beta=beta))
+                v = min(
+                    v,
+                    self.utility(
+                        after_move(state, move), max_depth - 1, alpha=alpha, beta=beta))
                 beta = min(beta, v)
                 if beta <= alpha:
                     break
             return v
 
-
     def quality(self, move, state, max_depth=8, alpha=-10, beta=10):
-        return self.utility(after_move(state, move), max_depth=max_depth, alpha=alpha, beta=beta)
+        return self.utility(
+            after_move(state, move), max_depth=max_depth, alpha=alpha, beta=beta)
 
     def __call__(self, board):
         if self.side is None: self.side = board.turn
@@ -95,7 +102,8 @@ class Bot:
             self.mem_cache = {}
         else:
             self._clear_flag = True
-        moves = sorted((self.quality(m, board.get_state()), m)
+        moves = sorted((self.quality(
+            m, board.get_state(), max_depth = self.search_depth), m)
                        for m in self.available_moves(board))
         top_moves = [m for m in moves if m[0] == moves[-1][0]]
         print(moves, end=':')

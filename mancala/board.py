@@ -186,7 +186,6 @@ class Board(State):
     def bottom(self, new):
         self._bottom = new
 
-
     def __hash__(self):
         raise TypeError('Unhashable type: \'Board\'')
 

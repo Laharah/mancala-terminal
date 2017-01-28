@@ -1,4 +1,5 @@
 from .board import Board
+from .display import show_board
 from .errors import IllegalMove
 
 
@@ -9,11 +10,7 @@ class Game:
         self.board = Board()
         self.top = player_top
         self.bottom = player_bottom
-        self.player = {
-            self.board.TOP: self.top,
-            self.board.BOTTOM: self.bottom,
-            -1: None
-        }
+        self.player = {self.board.TOP: self.top, self.board.BOTTOM: self.bottom, -1: None}
         self.player_number = {self.top: Board.TOP, self.bottom: Board.BOTTOM, -1: None}
 
     @property
@@ -41,9 +38,11 @@ class Game:
         score = self.board.score
         return self.top if score.top < score.bottom else self.bottom
 
-    def __call__(self):
+    def __call__(self, verbose=False):
         board = self.board
         while board.turn != -1:
+            if verbose:
+                show_board(self.board)
             self.execute_turn()
 
     def execute_turn(self, player=None):
