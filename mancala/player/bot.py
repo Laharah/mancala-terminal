@@ -24,7 +24,9 @@ class Bot:
 
     @staticmethod
     def available_moves(state):
-        yield from (i for i, v in enumerate(state.current_side[:-1]) if v != 0)
+        # yield from (i for i, v in enumerate(state.current_side[-1:0:-1]) if v != 0)
+        side = state.current_side
+        yield from (i for i in reversed(range(len(side)-1)) if side[i] > 0)
 
     def estimate_utility(self, state):
         'the estimated utility: store points + 1 for every house that can make it to the store'
@@ -84,7 +86,7 @@ class Bot:
             return v
 
 
-    def quality(self, move, state, max_depth=5, alpha=-10, beta=10):
+    def quality(self, move, state, max_depth=8, alpha=-10, beta=10):
         return self.utility(after_move(state, move), max_depth=max_depth, alpha=alpha, beta=beta)
 
     def __call__(self, board):

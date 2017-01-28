@@ -9,9 +9,9 @@ Bot = bot.Bot
 def test_available_moves():
     bot = Bot()
     board = Board()
-    assert list(bot.available_moves(board)) == list(range(6))
+    assert list(bot.available_moves(board)) == list(reversed(range(6)))
     board.bottom[:3] = [0, 0, 0]
-    assert list(bot.available_moves(board)) == [3, 4, 5]
+    assert list(bot.available_moves(board)) == [5, 4, 3]
 
 
 def test_wants_to_win():
