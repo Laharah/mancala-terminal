@@ -47,7 +47,7 @@ class Bot:
                 canidates += .5
         return canidates
 
-    def utility(self, state, max_depth=5):
+    def utility(self, state, max_depth=6, alpha=-10, beta=10):
         if state.turn == -1:
             score = state.score
             if score.top > score.bottom:
@@ -65,22 +65,27 @@ class Bot:
 
         if max_depth <= 0 and state.turn != self.side:
             return self.estimate_utility(state)
-        max_min = max if state.turn == self.side else min
 
-        win_state = 1 if max_min is max else -1
-        move_qualities = []
-        for move in self.available_moves(state):
-            q = self.quality(move, state, max_depth=max_depth - 1)
-            if q == win_state:
-                return self.utility(after_move(state, move), max_depth=max_depth)
-            move_qualities.append((q, move))
+        if self.side == state.turn:
+            v = -10
+            for move in self.available_moves(state):
+                v = max(v, self.utility(after_move(state, move), max_depth-1, alpha=alpha, beta=beta))
+                alpha = max(alpha, v)
+                if beta <= alpha:
+                    break
+            return v
+        else:
+            v = 10
+            for move in self.available_moves(state):
+                v = min(v, self.utility(after_move(state, move), max_depth-1, alpha=alpha, beta=beta))
+                beta = min(beta, v)
+                if beta <= alpha:
+                    break
+            return v
 
-        best_move = max_min(move_qualities)
 
-        return self.utility(after_move(state, best_move[1]), max_depth=max_depth)
-
-    def quality(self, move, state, max_depth=5):
-        return self.utility(after_move(state, move), max_depth=max_depth)
+    def quality(self, move, state, max_depth=5, alpha=-10, beta=10):
+        return self.utility(after_move(state, move), max_depth=max_depth, alpha=alpha, beta=beta)
 
     def __call__(self, board):
         if self.side is None: self.side = board.turn
@@ -98,5 +103,5 @@ class Bot:
             self._clear_flag = False
         else:
             move = random.choice(top_moves)
-        print(move[1] + 1)
+        print(move[1] + 1, self.side, sep=', ')
         return move[1]
