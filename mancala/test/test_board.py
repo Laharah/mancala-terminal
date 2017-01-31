@@ -94,6 +94,14 @@ def test_current_side():
     b(1)
     assert b.current_side is b.top
 
+def test_opposing_side():
+    b = Board()
+    assert b.opposing_side is b.top
+    b(2)
+    assert b.opposing_side is b.top
+    b(1)
+    assert b.opposing_side is b.bottom
+
 
 def test_call_steal():
     b1 = Board()

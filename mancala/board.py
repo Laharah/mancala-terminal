@@ -42,6 +42,10 @@ class State:
     def current_side(self):
         return self.bottom if self.turn == self.BOTTOM else self.top
 
+    @property
+    def opposing_side(self):
+        return self.bottom if self.turn == self.TOP else self.top
+
     def __getitem__(self, index):
         return (self.top, self.bottom, self.turn)[index]
 
