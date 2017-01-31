@@ -8,20 +8,8 @@ class Bot:
     def __init__(self, search_depth=8):
         self.side = None
         self.mem_cache = {}
-        self.utility = self.memo(self.utility)
         self._clear_flag = True
         self.search_depth = search_depth
-
-    def memo(self, func):
-        @functools.wraps(func)
-        def inner(*args, **kwargs):
-            try:
-                return self.mem_cache[func, args]
-            except KeyError:
-                result = self.mem_cache[func, args] = func(*args, **kwargs)
-                return result
-
-        return inner
 
     @staticmethod
     def available_moves(state):
@@ -50,7 +38,7 @@ class Bot:
                 canidates += .5
         return canidates
 
-    def utility(self, state, max_depth=6, alpha=-10, beta=10):
+    def utility(self, state, max_depth=8, alpha=-10, beta=10):
         if state.turn == -1:
             score = state.score
             if score.top > score.bottom:
