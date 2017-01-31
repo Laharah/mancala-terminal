@@ -38,6 +38,29 @@ class Bot:
                 canidates += .5
         return canidates
 
+    def order_moves(self, pairs, original):
+        'given (move,state) pairs order them by most likely to succeed'
+        #cached hints
+        #extra_turns
+        #captures (expensive, turned off for now)
+        #left to right
+        ordered = []
+        for m, state in pairs:
+            # capture = 0
+            # end = m + original.current_side[m] % 13
+            # if end < 6:
+            #     if original.opposing_side[5 - m]:
+            #         capture = -1
+
+            ordered.append((self.mem_cache.get(state, 0),
+                -1 if original.turn == state.turn else 0,
+                # capture,
+                5 - m,
+                m, state))
+
+        ordered.sort()
+        return (o[-2:] for o in ordered)
+
     def utility(self, state, max_depth=8, alpha=-10, beta=10):
         if state.turn == -1:
             score = state.score
@@ -57,24 +80,22 @@ class Bot:
         if max_depth <= 0 and state.turn != self.side:
             return self.estimate_utility(state)
 
+        move_state_pairs = ((m, after_move(state, m))
+                            for m in self.available_moves(state))
+        moves = self.order_moves(move_state_pairs, state)
+
         if self.side == state.turn:
             v = -10
-            for move in self.available_moves(state):
-                v = max(
-                    v,
-                    self.utility(
-                        after_move(state, move), max_depth - 1, alpha=alpha, beta=beta))
+            for move, n_state in moves:
+                v = max(v, self.utility(n_state, max_depth - 1, alpha=alpha, beta=beta))
                 alpha = max(alpha, v)
                 if beta <= alpha:
                     break
             return v
         else:
             v = 10
-            for move in self.available_moves(state):
-                v = min(
-                    v,
-                    self.utility(
-                        after_move(state, move), max_depth - 1, alpha=alpha, beta=beta))
+            for move, n_state in moves:
+                v = min(v, self.utility(n_state, max_depth - 1, alpha=alpha, beta=beta))
                 beta = min(beta, v)
                 if beta <= alpha:
                     break
@@ -91,7 +112,7 @@ class Bot:
         else:
             self._clear_flag = True
         moves = sorted((self.quality(
-            m, board.get_state(), max_depth = self.search_depth), m)
+            m, board.get_state(), max_depth=self.search_depth), m)
                        for m in self.available_moves(board))
         top_moves = [m for m in moves if m[0] == moves[-1][0]]
         print(moves, end=':')
