@@ -77,7 +77,7 @@ class Bot:
             else:
                 return -1
 
-        if max_depth <= 0 and state.turn != self.side:
+        if max_depth <= 0:
             return self.estimate_utility(state)
 
         move_state_pairs = ((m, after_move(state, m))
