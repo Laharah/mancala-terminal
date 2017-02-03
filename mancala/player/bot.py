@@ -7,8 +7,7 @@ from ..board import State, after_move
 class Bot:
     def __init__(self, search_depth=8):
         self.side = None
-        self.mem_cache = {}
-        self._clear_flag = True
+        self.mem_cache = {}  #format state:[lower, upper]
         self.search_depth = search_depth
 
     @staticmethod
@@ -19,13 +18,11 @@ class Bot:
 
     def estimate_utility(self, state):
         'the estimated utility: store points + 1 for every house that can make it to the store'
-        my_side = state.top if self.side == state.TOP else state.bottom
-        other_side = state.bottom if self.side == state.TOP else state.top
-        my_store = my_side[-1]
-        other_store = other_side[-1]
-        my_store += self.canidate_houses(my_side) / 2
-        other_store += self.canidate_houses(other_side) / 2
-        return (my_store - other_store) / 200
+        stores = state.bottom_store, state.top_store
+        if self.side == state.BOTTOM:
+            return stores[0] - stores[1]
+        else:
+            return stores[1] - stores[0]
 
     @staticmethod
     def canidate_houses(side):
@@ -52,46 +49,50 @@ class Bot:
             #     if original.opposing_side[5 - m]:
             #         capture = -1
 
-            ordered.append((self.mem_cache.get(state, 0),
+            # we invert for our side so better positions come first, not needed
+            # on opposing side)
+            turn = original.turn
+            sign = -1 if turn == self.side else 1
+            index = 1 if turn == self.side else 0
+
+            ordered.append((self.mem_cache.get(state, (0,0))[index] * sign,
                 -1 if original.turn == state.turn else 0,
                 # capture,
                 5 - m,
-                m, state))
+                m, state))  #these last two do not affect sort, used for id
 
         ordered.sort()
         return (o[-2:] for o in ordered)
 
-    def utility(self, state, max_depth=8, alpha=-10, beta=10):
-        if state.turn == -1:
-            score = state.score
-            if score.top > score.bottom:
-                winner = state.TOP
-            elif score.bottom > score.top:
-                winner = state.BOTTOM
-            else:
-                winner = None
-            if winner is None:
-                return 0
-            if winner == self.side:
-                return 1
-            else:
-                return -1
+    def utility(self, state, max_depth=8, alpha=-100, beta=100):
+        try:
+            lower, upper = self.mem_cache[state]
+        except KeyError:
+            lower, upper = -100, 100
+        else:
+            if lower >= beta: return lower
+            if upper <= alpha: return upper
+            alpha = max(alpha, lower)
+            beta = min(beta, upper)
 
-        if max_depth <= 0:
+        if state.turn == -1:
             return self.estimate_utility(state)
+
 
         move_state_pairs = ((m, after_move(state, m))
                             for m in self.available_moves(state))
         moves = self.order_moves(move_state_pairs, state)
 
-        if self.side == state.turn:
+        if max_depth <= 0:
+            v = self.estimate_utility(state)
+
+        elif self.side == state.turn:
             v = -10
             for move, n_state in moves:
                 v = max(v, self.utility(n_state, max_depth - 1, alpha=alpha, beta=beta))
                 alpha = max(alpha, v)
                 if beta <= alpha:
                     break
-            return v
         else:
             v = 10
             for move, n_state in moves:
@@ -99,7 +100,15 @@ class Bot:
                 beta = min(beta, v)
                 if beta <= alpha:
                     break
-            return v
+
+        if v <= alpha:
+            upper = v
+        if alpha < v < beta:
+            lower = upper = v
+        if v >= beta:
+            lower = v
+        self.mem_cache[state] = [lower, upper]
+        return v
 
     def quality(self, move, state, max_depth=8, alpha=-10, beta=10):
         return self.utility(
@@ -107,10 +116,6 @@ class Bot:
 
     def __call__(self, board):
         if self.side is None: self.side = board.turn
-        if self._clear_flag:
-            self.mem_cache = {}
-        else:
-            self._clear_flag = True
         moves = sorted((self.quality(
             m, board.get_state(), max_depth=self.search_depth), m)
                        for m in self.available_moves(board))
@@ -119,7 +124,6 @@ class Bot:
         extra_moves = [m for m in top_moves if after_move(board, m[1]).turn == self.side]
         if extra_moves:
             move = extra_moves[-1]
-            self._clear_flag = False
         else:
             move = random.choice(top_moves)
         print(move[1] + 1)
