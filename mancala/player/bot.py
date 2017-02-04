@@ -1,12 +1,13 @@
 import functools
 import random
+import itertools
 from pprint import pprint
 
 from ..board import State, after_move
 
 
 class Bot:
-    def __init__(self, search_depth=12):
+    def __init__(self, search_depth=30):
         self.side = None
         self.mem_cache = {}  #format state:[lower, upper, depth]
         self.search_depth = search_depth
@@ -121,7 +122,7 @@ class Bot:
         return v
 
     def iterative_deepening(self, state, max_depth):
-        f = 0
+        f = -10
         for d in range(1, max_depth+1, 3):
             f = self.mtdf(state, f, depth=d)
         return f
@@ -156,10 +157,10 @@ class Bot:
         # return moves[-1][1]
         top_moves = [m for m in moves if m[0] == moves[-1][0]]
         print(moves, end=':')
-        # extra_moves = [m for m in top_moves if after_move(board, m[1]).turn == self.side]
-        # if extra_moves:
-        #     move = extra_moves[-1]
-        # else:
-        move = random.choice(top_moves)
-        print(move[1])
+        extra_moves = [m for m in top_moves if after_move(board, m[1]).turn == self.side]
+        if extra_moves:
+            move = extra_moves[-1]
+        else:
+            move = random.choice(top_moves)
+        print(move[1]+1)
         return move[1]
