@@ -1,13 +1,14 @@
 import functools
 import random
+from pprint import pprint
 
 from ..board import State, after_move
 
 
 class Bot:
-    def __init__(self, search_depth=8):
+    def __init__(self, search_depth=12):
         self.side = None
-        self.mem_cache = {}  #format state:[lower, upper]
+        self.mem_cache = {}  #format state:[lower, upper, depth]
         self.search_depth = search_depth
 
     @staticmethod
@@ -64,16 +65,18 @@ class Bot:
         ordered.sort()
         return (o[-2:] for o in ordered)
 
-    def utility(self, state, max_depth=8, alpha=-100, beta=100):
+    def utility(self, state, remaining_depth=8, alpha=-100, beta=100):
         try:
-            lower, upper = self.mem_cache[state]
+            lower, upper, entry_depth = self.mem_cache[state]
         except KeyError:
             lower, upper = -100, 100
         else:
-            if lower >= beta: return lower
-            if upper <= alpha: return upper
-            alpha = max(alpha, lower)
-            beta = min(beta, upper)
+            if entry_depth >= remaining_depth:
+                # print('cache hit: ', self.mem_cache[state])
+                if lower >= beta: return lower
+                if upper <= alpha: return upper
+                alpha = max(alpha, lower)
+                beta = min(beta, upper)
 
         if state.turn == -1:
             return self.estimate_utility(state)
@@ -83,48 +86,80 @@ class Bot:
                             for m in self.available_moves(state))
         moves = self.order_moves(move_state_pairs, state)
 
-        if max_depth <= 0:
+        # print(remaining_depth)
+
+        if remaining_depth <= 0:
             v = self.estimate_utility(state)
 
         elif self.side == state.turn:
-            v = -10
+            v = -100
+            a = alpha
             for move, n_state in moves:
-                v = max(v, self.utility(n_state, max_depth - 1, alpha=alpha, beta=beta))
-                alpha = max(alpha, v)
-                if beta <= alpha:
+                v = max(v, self.utility(n_state, remaining_depth - 1, alpha=a, beta=beta))
+                a = max(alpha, v)
+                if v >= beta:
                     break
         else:
-            v = 10
+            v = 100
+            b = beta
             for move, n_state in moves:
-                v = min(v, self.utility(n_state, max_depth - 1, alpha=alpha, beta=beta))
-                beta = min(beta, v)
-                if beta <= alpha:
+                v = min(v, self.utility(n_state, remaining_depth - 1, alpha=alpha, beta=b))
+                b = min(b, v)
+                if v <= alpha:
                     break
 
         if v <= alpha:
+            # print('fail low')
             upper = v
         if alpha < v < beta:
             lower = upper = v
+            print('should not be here!')
         if v >= beta:
+            # print('fail high')
             lower = v
-        self.mem_cache[state] = [lower, upper]
+        self.mem_cache[state] = [lower, upper, remaining_depth]
         return v
 
+    def iterative_deepening(self, state, max_depth):
+        f = 0
+        for d in range(1, max_depth+1, 3):
+            f = self.mtdf(state, f, depth=d)
+        return f
+
+    def mtdf(self, state, guess, depth=8):
+        g = guess
+        # print('guess, depth: ', g, depth)
+        upperbound = 1000
+        lowerbound = -1000
+        while lowerbound < upperbound:
+            beta = g + 1 if g == lowerbound else g
+            g = self.utility(state, alpha=beta-1, beta=beta, remaining_depth=depth)
+            if g < beta:
+                upperbound = g
+            else:
+                lowerbound = g
+            # print(lowerbound, upperbound, g)
+        # print('returning: ', g)
+        # print('--')
+        return g
+
     def quality(self, move, state, max_depth=8, alpha=-10, beta=10):
-        return self.utility(
-            after_move(state, move), max_depth=max_depth, alpha=alpha, beta=beta)
+        return self.iterative_deepening(after_move(state, move), max_depth)
 
     def __call__(self, board):
         if self.side is None: self.side = board.turn
         moves = sorted((self.quality(
             m, board.get_state(), max_depth=self.search_depth), m)
                        for m in self.available_moves(board))
+        # print(moves)
+        # print(self.mem_cache.values())
+        # return moves[-1][1]
         top_moves = [m for m in moves if m[0] == moves[-1][0]]
         print(moves, end=':')
-        extra_moves = [m for m in top_moves if after_move(board, m[1]).turn == self.side]
-        if extra_moves:
-            move = extra_moves[-1]
-        else:
-            move = random.choice(top_moves)
-        print(move[1] + 1)
+        # extra_moves = [m for m in top_moves if after_move(board, m[1]).turn == self.side]
+        # if extra_moves:
+        #     move = extra_moves[-1]
+        # else:
+        move = random.choice(top_moves)
+        print(move[1])
         return move[1]
