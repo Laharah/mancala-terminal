@@ -7,7 +7,7 @@ from ..board import State, after_move
 
 
 class Bot:
-    def __init__(self, search_depth=30):
+    def __init__(self, search_depth=12):
         self.side = None
         self.mem_cache = {}  #format state:[lower, upper, depth]
         self.search_depth = search_depth
@@ -18,13 +18,30 @@ class Bot:
         side = state.current_side
         yield from (i for i in reversed(range(len(side) - 1)) if side[i] > 0)
 
-    def estimate_utility(self, state):
+    def estimate_basic(self, state):
         'the estimated utility: store points + 1 for every house that can make it to the store'
         stores = state.bottom_store, state.top_store
         if self.side == state.BOTTOM:
             return stores[0] - stores[1]
         else:
             return stores[1] - stores[0]
+
+    def estimate_advanced(self, state):
+        'the estimated utility: store points + 1 for every house that can make it to the store'
+        my_side = state.top if self.side == state.TOP else state.bottom
+        other_side = state.bottom if self.side == state.TOP else state.top
+        if state.turn == -1:
+            if my_side[-1] > other_side[-1]:
+                return 1
+            elif my_side[-1] < other_side[-1]:
+                return -1
+            else:
+                return 0
+        my_store = my_side[-1]
+        other_store = other_side[-1]
+        my_store += self.canidate_houses(my_side) / 2
+        other_store += self.canidate_houses(other_side) / 2
+        return (my_store - other_store) / 200
 
     @staticmethod
     def canidate_houses(side):
@@ -79,8 +96,8 @@ class Bot:
                 alpha = max(alpha, lower)
                 beta = min(beta, upper)
 
-        if state.turn == -1:
-            return self.estimate_utility(state)
+        if state.turn == -1 or remaining_depth <= 0:
+            return self.estimate_advanced(state)
 
 
         move_state_pairs = ((m, after_move(state, m))
@@ -89,10 +106,7 @@ class Bot:
 
         # print(remaining_depth)
 
-        if remaining_depth <= 0:
-            v = self.estimate_utility(state)
-
-        elif self.side == state.turn:
+        if self.side == state.turn:
             v = -100
             a = alpha
             for move, n_state in moves:
@@ -122,7 +136,7 @@ class Bot:
         return v
 
     def iterative_deepening(self, state, max_depth):
-        f = -10
+        f = -1
         for d in range(1, max_depth+1, 3):
             f = self.mtdf(state, f, depth=d)
         return f
@@ -133,8 +147,8 @@ class Bot:
         upperbound = 1000
         lowerbound = -1000
         while lowerbound < upperbound:
-            beta = g + 1 if g == lowerbound else g
-            g = self.utility(state, alpha=beta-1, beta=beta, remaining_depth=depth)
+            beta = g + .000001 if g == lowerbound else g
+            g = self.utility(state, alpha=beta-.000001, beta=beta, remaining_depth=depth)
             if g < beta:
                 upperbound = g
             else:
