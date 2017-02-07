@@ -17,8 +17,12 @@ Currently the game has a crude and poorly optimized bot to play against.
 ###### TODO:
 * improve bot
    * speed/space optimizations, lots of room for improvement here
-   * design better heuristic for estimating state utility
+     - combine bot mem_cache and after_move memoization into single transposition table (with best move?)
+     - futility pruning in alpha-beta (not easily implemented with advanced estimation heuristic)
+     - enhanced transposition cutoffs (examine child nodes for cutoffs before recursing)
+     - endgame databases, too slow to compute at current speeds.
    * 'solve' the game?
-   * train a ML replacement for bot?
+   * train a ML replacement for bot if realtime solving infeasible?
+   * go nuclear (rewrite bot into c extension)
 * implement fallback to ascii for non utf-8 compliant terminals
 * refactor rule logic into game module for better separation of concerns
