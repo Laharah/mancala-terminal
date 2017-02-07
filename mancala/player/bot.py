@@ -110,10 +110,7 @@ class Bot:
             v = -100
             a = alpha
             for move, n_state in moves:
-                v = max(
-                    v,
-                    self.utility(
-                        n_state, remaining_depth - 1, alpha=a, beta=beta))
+                v = max(v, self.utility(n_state, remaining_depth - 1, alpha=a, beta=beta))
                 a = max(alpha, v)
                 if v >= beta:
                     break
@@ -123,10 +120,7 @@ class Bot:
             for move, n_state in moves:
                 v = min(v,
                         self.utility(
-                            n_state,
-                            remaining_depth - 1,
-                            alpha=alpha,
-                            beta=b))
+                            n_state, remaining_depth - 1, alpha=alpha, beta=b))
                 b = min(b, v)
                 if v <= alpha:
                     break
@@ -159,10 +153,7 @@ class Bot:
         while lowerbound < upperbound:
             beta = g + .000001 if g == lowerbound else g
             g = self.utility(
-                state,
-                alpha=beta - .000001,
-                beta=beta,
-                remaining_depth=depth)
+                state, alpha=beta - .000001, beta=beta, remaining_depth=depth)
             if g < beta:
                 upperbound = g
             else:
@@ -173,7 +164,7 @@ class Bot:
         return g
 
     def quality(self, move, state, max_depth=8):
-        return self.iterative_deepening(after_move(state, move), max_depth)
+        return self.mtdf(after_move(state, move), guess=0, depth=max_depth)
 
     def __call__(self, board):
         if self.side is None: self.side = board.turn
