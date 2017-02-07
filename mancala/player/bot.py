@@ -7,9 +7,9 @@ from ..board import State, after_move
 
 
 class Bot:
-    def __init__(self, search_depth=12):
+    def __init__(self, search_depth=8):
         self.side = None
-        self.mem_cache = {}  #format state:[lower, upper, depth]
+        self.mem_cache = {}  #format state:[lower, upper, depth, search_depth]
         self.search_depth = search_depth
 
     @staticmethod
@@ -19,7 +19,7 @@ class Bot:
         yield from (i for i in reversed(range(len(side) - 1)) if side[i] > 0)
 
     def estimate_basic(self, state):
-        'the estimated utility: store points + 1 for every house that can make it to the store'
+        'basic utility, measured by difference between houses'
         stores = state.bottom_store, state.top_store
         if self.side == state.BOTTOM:
             return stores[0] - stores[1]
@@ -74,11 +74,13 @@ class Bot:
             sign = -1 if turn == self.side else 1
             index = 1 if turn == self.side else 0
 
-            ordered.append((self.mem_cache.get(state, (0,0))[index] * sign,
+            ordered.append((
+                self.mem_cache.get(state, (0, 0))[index] * sign,
                 -1 if original.turn == state.turn else 0,
                 # capture,
                 5 - m,
-                m, state))  #these last two do not affect sort, used for id
+                m,
+                state))  #these last two do not affect sort, used for id
 
         ordered.sort()
         return (o[-2:] for o in ordered)
@@ -90,27 +92,28 @@ class Bot:
             lower, upper = -100, 100
         else:
             if entry_depth >= remaining_depth:
-                # print('cache hit: ', self.mem_cache[state])
                 if lower >= beta: return lower
                 if upper <= alpha: return upper
                 alpha = max(alpha, lower)
                 beta = min(beta, upper)
+            else:
+                lower, upper, = -100, 100
 
         if state.turn == -1 or remaining_depth <= 0:
             return self.estimate_advanced(state)
-
 
         move_state_pairs = ((m, after_move(state, m))
                             for m in self.available_moves(state))
         moves = self.order_moves(move_state_pairs, state)
 
-        # print(remaining_depth)
-
         if self.side == state.turn:
             v = -100
             a = alpha
             for move, n_state in moves:
-                v = max(v, self.utility(n_state, remaining_depth - 1, alpha=a, beta=beta))
+                v = max(
+                    v,
+                    self.utility(
+                        n_state, remaining_depth - 1, alpha=a, beta=beta))
                 a = max(alpha, v)
                 if v >= beta:
                     break
@@ -118,7 +121,12 @@ class Bot:
             v = 100
             b = beta
             for move, n_state in moves:
-                v = min(v, self.utility(n_state, remaining_depth - 1, alpha=alpha, beta=b))
+                v = min(v,
+                        self.utility(
+                            n_state,
+                            remaining_depth - 1,
+                            alpha=alpha,
+                            beta=b))
                 b = min(b, v)
                 if v <= alpha:
                     break
@@ -137,8 +145,10 @@ class Bot:
 
     def iterative_deepening(self, state, max_depth):
         f = -1
-        for d in range(1, max_depth+1, 3):
+        for d in range(1, max_depth, 3):
             f = self.mtdf(state, f, depth=d)
+            # print('deepening search')
+        f = self.mtdf(state, f, depth=max_depth)
         return f
 
     def mtdf(self, state, guess, depth=8):
@@ -148,21 +158,26 @@ class Bot:
         lowerbound = -1000
         while lowerbound < upperbound:
             beta = g + .000001 if g == lowerbound else g
-            g = self.utility(state, alpha=beta-.000001, beta=beta, remaining_depth=depth)
+            g = self.utility(
+                state,
+                alpha=beta - .000001,
+                beta=beta,
+                remaining_depth=depth)
             if g < beta:
                 upperbound = g
             else:
                 lowerbound = g
             # print(lowerbound, upperbound, g)
-        # print('returning: ', g)
-        # print('--')
+            # print('returning: ', g)
+            # print('--')
         return g
 
-    def quality(self, move, state, max_depth=8, alpha=-10, beta=10):
+    def quality(self, move, state, max_depth=8):
         return self.iterative_deepening(after_move(state, move), max_depth)
 
     def __call__(self, board):
         if self.side is None: self.side = board.turn
+
         moves = sorted((self.quality(
             m, board.get_state(), max_depth=self.search_depth), m)
                        for m in self.available_moves(board))
@@ -176,5 +191,5 @@ class Bot:
             move = extra_moves[-1]
         else:
             move = random.choice(top_moves)
-        print(move[1]+1)
+        print(move[1] + 1)
         return move[1]
