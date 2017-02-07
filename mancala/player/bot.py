@@ -102,8 +102,27 @@ class Bot:
         if state.turn == -1 or remaining_depth <= 0:
             return self.estimate_advanced(state)
 
-        move_state_pairs = ((m, after_move(state, m))
-                            for m in self.available_moves(state))
+        move_state_pairs = [(m, after_move(state, m))
+                            for m in self.available_moves(state)]
+
+        # Enhanced transposition cutoff:
+        # TODO: move this to order_moves to save on lookups
+        if remaining_depth > 1:
+            for _, child in move_state_pairs:
+                try:
+                    l, u, d = self.mem_cache[child]
+                except KeyError:
+                    continue
+                else:
+                    if d >= remaining_depth:
+                        if l >= beta:
+                            # print('ETC L: ', l, u,d, beta)
+                            return l
+                        if u <= alpha:
+                            # print('ETC U: ', l, u,d, alpha)
+                            return u
+
+        #Move ordering:
         moves = self.order_moves(move_state_pairs, state)
 
         if self.side == state.turn:
@@ -148,8 +167,8 @@ class Bot:
     def mtdf(self, state, guess, depth=8):
         g = guess
         # print('guess, depth: ', g, depth)
-        upperbound = 1000
-        lowerbound = -1000
+        upperbound = 100
+        lowerbound = -100
         while lowerbound < upperbound:
             beta = g + .000001 if g == lowerbound else g
             g = self.utility(
