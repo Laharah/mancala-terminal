@@ -191,7 +191,6 @@ class Bot:
             # print(lowerbound, upperbound, g)
             # print('returning: ', g)
             # print('--')
-        print("Final Cache:{}".format(self.mem_cache[state]))
         return g
 
     def quality(self, move, state, max_depth=8):
@@ -201,7 +200,6 @@ class Bot:
         if self.side is None: self.side = board.turn
         state = board.get_state()
         guess = self.last_utility_estimate
-        self.mem_cache.clear()
         self.mtdf(state, guess=guess, depth=self.search_depth)
         # print(moves)
         # print(self.mem_cache.values())
