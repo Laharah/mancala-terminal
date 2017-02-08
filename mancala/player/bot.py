@@ -50,7 +50,7 @@ class Bot:
         canidates = 0
         for i in range(size):
             if side[i] == size - (i + 1):
-                canidates += 1
+                canidates += 2
             elif side[i] > size - (i + 1):
                 canidates += .5
         return canidates
