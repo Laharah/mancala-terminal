@@ -56,7 +56,7 @@ def test_anti_cheat():
     p2 = Mock()
     g = Game(p1, p2)
     g.execute_turn()
-    assert g.score == (0, 1)
+    assert g.score == (1, 0)
 
 
 def test_game_loop(random_player):

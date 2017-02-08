@@ -5,7 +5,7 @@ from collections import namedtuple
 from .errors import IllegalMove
 from .utils import memo
 
-Score = namedtuple("Score", "top, bottom")
+Score = namedtuple("Score", "bottom, top")
 
 
 class State:
@@ -89,7 +89,7 @@ class State:
 
     @property
     def score(self):
-        return Score(self.top_store, self.bottom_store)
+        return Score(self.bottom_store, self.top_store)
 
     def next_turn(self):
         return self.BOTTOM if self.turn == self.TOP else self.TOP

@@ -26,8 +26,9 @@ def test_wants_to_win():
         assert move == expected
         board(move)
     assert board.turn is -1
-    assert board.score == (19, 20)
+    assert board.score == (20, 19)
     print(bot.mem_cache)
+
 
 @pytest.mark.skip
 def test_limit_break():
