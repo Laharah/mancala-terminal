@@ -135,7 +135,7 @@ class Bot:
             a = alpha
             for move, n_state in moves:
                 util = self.utility(n_state, remaining_depth - 1, alpha=a, beta=beta)
-                if v <= util:
+                if v < util:
                     v = util
                     best_move = move
                 a = max(alpha, v)
@@ -146,7 +146,7 @@ class Bot:
             b = beta
             for move, n_state in moves:
                 util = self.utility(n_state, remaining_depth - 1, alpha=alpha, beta=b)
-                if v >= util:
+                if v > util:
                     v = util
                     best_move = move
                 b = min(b, v)
@@ -180,6 +180,8 @@ class Bot:
         lowerbound = -100
         while lowerbound < upperbound:
             beta = g + .000001 if g == lowerbound else g
+            # print('cached: {}'.format(self.mem_cache.get(state, None)))
+            # print('calling with: alpha={}, beta={}, d={}'.format(beta - .000001, beta, depth) )
             g = self.utility(
                 state, alpha=beta - .000001, beta=beta, remaining_depth=depth)
             if g < beta:
@@ -189,6 +191,7 @@ class Bot:
             # print(lowerbound, upperbound, g)
             # print('returning: ', g)
             # print('--')
+        print("Final Cache:{}".format(self.mem_cache[state]))
         return g
 
     def quality(self, move, state, max_depth=8):

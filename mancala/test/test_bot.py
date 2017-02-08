@@ -3,6 +3,7 @@ import pytest
 from ..display import show_board
 from ..player import bot
 from ..board import Board
+from ..board import State
 
 Bot = bot.Bot
 
@@ -49,3 +50,15 @@ def test_first_move():
     board = Board()
     bot = Bot()
     assert bot(board) == 2
+
+
+def test_correct_best_move():
+    state = State(
+        bottom=b'\x03\x00\x00\x02\x00\x01\x0e',
+        top=b'\x04\x01\x00\x04\x00\x00\x13',
+        turn=0)
+    bot = Bot(14)
+    bot.side = 0
+    assert bot.mtdf(state, 0, depth=14) == 1
+    print(bot.mem_cache[state])
+    assert bot(Board.from_state(state)) == 5
