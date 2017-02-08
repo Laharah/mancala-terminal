@@ -197,8 +197,9 @@ class Bot:
     def __call__(self, board):
         if self.side is None: self.side = board.turn
         state = board.get_state()
-
-        self.mtdf(state, guess=self.last_utility_estimate, depth=self.search_depth)
+        guess = self.last_utility_estimate
+        self.mem_cache.clear()
+        self.mtdf(state, guess=guess, depth=self.search_depth)
         # print(moves)
         # print(self.mem_cache.values())
         # return moves[-1][1]

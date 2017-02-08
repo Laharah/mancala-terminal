@@ -1,0 +1,9 @@
+weird state:
+State(bottom=b'\x03\x00\x00\x02\x00\x01\x0e', top=b'\x04\x01\x00\x04\x00\x00\x13', turn=0)
+
+moves are 5, 3, 0
+with depth 14, both new and old bot assess that the utility is 1
+the move leading to victory is 5
+for unknown reason, new bot caches the best move to be 0 instead of 5
+
+critical bug!!! 

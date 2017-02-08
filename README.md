@@ -16,6 +16,7 @@ Currently the game has a crude and poorly optimized bot to play against.
 
 ###### TODO:
 * improve bot
+   * **critical bug, see TODO file for info!!**
    * speed/space optimizations, lots of room for improvement here
      - combine bot mem_cache and after_move memoization into single transposition table (with best move?)
      - futility pruning in alpha-beta (not easily implemented with advanced estimation heuristic)
