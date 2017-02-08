@@ -11,6 +11,7 @@ class Bot:
         self.side = None
         self.mem_cache = {}  #format state:[lower, upper, depth, search_depth]
         self.search_depth = search_depth
+        self.last_utility_estimate = 0
 
     @staticmethod
     def available_moves(state):
@@ -54,7 +55,7 @@ class Bot:
                 canidates += .5
         return canidates
 
-    def order_moves(self, pairs, original):
+    def order_moves(self, pairs, original, best_move):
         'given (move,state) pairs order them by most likely to succeed'
         #cached hints
         #extra_turns
@@ -73,9 +74,12 @@ class Bot:
             turn = original.turn
             sign = -1 if turn == self.side else 1
             index = 1 if turn == self.side else 0
+            hint = self.mem_cache.get(state, (0, 0))[index] * sign
+            if m == best_move:
+                hint -= 10
 
             ordered.append((
-                self.mem_cache.get(state, (0, 0))[index] * sign,
+                hint,
                 -1 if original.turn == state.turn else 0,
                 # capture,
                 5 - m,
@@ -87,9 +91,9 @@ class Bot:
 
     def utility(self, state, remaining_depth=8, alpha=-100, beta=100):
         try:
-            lower, upper, entry_depth = self.mem_cache[state]
+            lower, upper, entry_depth, best_move = self.mem_cache[state]
         except KeyError:
-            lower, upper = -100, 100
+            lower, upper, best_move = -100, 100, None
         else:
             if entry_depth >= remaining_depth:
                 if lower >= beta: return lower
@@ -97,7 +101,7 @@ class Bot:
                 alpha = max(alpha, lower)
                 beta = min(beta, upper)
             else:
-                lower, upper, = -100, 100
+                lower, upper = -100, 100
 
         if state.turn == -1 or remaining_depth <= 0:
             return self.estimate_advanced(state)
@@ -110,7 +114,7 @@ class Bot:
         if remaining_depth > 1:
             for _, child in move_state_pairs:
                 try:
-                    l, u, d = self.mem_cache[child]
+                    l, u, d, _ = self.mem_cache[child]
                 except KeyError:
                     continue
                 else:
@@ -123,13 +127,16 @@ class Bot:
                             return u
 
         #Move ordering:
-        moves = self.order_moves(move_state_pairs, state)
+        moves = self.order_moves(move_state_pairs, state, best_move)
 
         if self.side == state.turn:
             v = -100
             a = alpha
             for move, n_state in moves:
-                v = max(v, self.utility(n_state, remaining_depth - 1, alpha=a, beta=beta))
+                util = self.utility(n_state, remaining_depth - 1, alpha=a, beta=beta)
+                if v <= util:
+                    v = util
+                    best_move = move
                 a = max(alpha, v)
                 if v >= beta:
                     break
@@ -137,9 +144,10 @@ class Bot:
             v = 100
             b = beta
             for move, n_state in moves:
-                v = min(v,
-                        self.utility(
-                            n_state, remaining_depth - 1, alpha=alpha, beta=b))
+                util = self.utility(n_state, remaining_depth - 1, alpha=alpha, beta=b)
+                if v >= util:
+                    v = util
+                    best_move = move
                 b = min(b, v)
                 if v <= alpha:
                     break
@@ -153,7 +161,7 @@ class Bot:
         if v >= beta:
             # print('fail high')
             lower = v
-        self.mem_cache[state] = [lower, upper, remaining_depth]
+        self.mem_cache[state] = [lower, upper, remaining_depth, best_move]
         return v
 
     def iterative_deepening(self, state, max_depth):
@@ -187,19 +195,15 @@ class Bot:
 
     def __call__(self, board):
         if self.side is None: self.side = board.turn
+        state = board.get_state()
 
-        moves = sorted((self.quality(
-            m, board.get_state(), max_depth=self.search_depth), m)
-                       for m in self.available_moves(board))
+        self.mtdf(state, guess=self.last_utility_estimate, depth=self.search_depth)
         # print(moves)
         # print(self.mem_cache.values())
         # return moves[-1][1]
-        top_moves = [m for m in moves if m[0] == moves[-1][0]]
-        print(moves, end=':')
-        extra_moves = [m for m in top_moves if after_move(board, m[1]).turn == self.side]
-        if extra_moves:
-            move = extra_moves[-1]
-        else:
-            move = random.choice(top_moves)
-        print(move[1] + 1)
-        return move[1]
+        results = self.mem_cache[state]
+        Human_move = results[-1] + 1
+        print(state, end=':')
+        print('lower:{}, upper:{}, depth:{}, best_move:{}'.format(*results[:-1],
+                                                                  Human_move))
+        return results[-1]
