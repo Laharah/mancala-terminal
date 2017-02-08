@@ -64,10 +64,11 @@ class Bot:
         ordered = []
         for m, state in pairs:
             # capture = 0
-            # end = m + original.current_side[m] % 13
-            # if end < 6:
-            #     if original.opposing_side[5 - m]:
-            #         capture = -1
+            # if original.current_side[m]< 13:
+            #     end = m + original.current_side[m] % 13
+            #     if end < 6 and original.current_side == 0:
+            #         if original.opposing_side[5 - m]:
+            #             capture = -1
 
             # we invert for our side so better positions come first, not needed
             # on opposing side)
