@@ -5,6 +5,9 @@ from pprint import pprint
 
 from ..board import State, after_move
 
+class ETC(Exception):
+    'helper exception for raising enhanced transposition cutoffs'
+
 
 class Bot:
     def __init__(self, search_depth=8):
@@ -55,12 +58,13 @@ class Bot:
                 canidates += .5
         return canidates
 
-    def order_moves(self, pairs, original, best_move):
+    def order_moves(self, pairs, original, best_move, alpha, beta, remaining_depth):
         'given (move,state) pairs order them by most likely to succeed'
         #cached hints
         #extra_turns
         #captures (expensive, turned off for now)
         #left to right
+
         ordered = []
         for m, state in pairs:
             # capture = 0
@@ -75,7 +79,17 @@ class Bot:
             turn = original.turn
             sign = -1 if turn == self.side else 1
             index = 1 if turn == self.side else 0
-            hint = self.mem_cache.get(state, (0, 0))[index] * sign
+
+            l, u, d, _ = self.mem_cache.get(state, (0, 0, -1, None))
+            # Enhanced transposition cutoff:
+            if d >= remaining_depth:
+                if l >=beta:
+                    raise ETC(l)
+                if u <= alpha:
+                    raise ETC(u)
+
+            hint = u if turn == self.side else l
+            hint *= sign
             if m == best_move:
                 hint -= 10
 
@@ -83,7 +97,7 @@ class Bot:
                 hint,
                 -1 if original.turn == state.turn else 0,
                 # capture,
-                5 - m,
+                -m,
                 m,
                 state))  #these last two do not affect sort, used for id
 
@@ -110,25 +124,11 @@ class Bot:
         move_state_pairs = [(m, after_move(state, m))
                             for m in self.available_moves(state)]
 
-        # Enhanced transposition cutoff:
-        # TODO: move this to order_moves to save on lookups
-        if remaining_depth > 1:
-            for _, child in move_state_pairs:
-                try:
-                    l, u, d, _ = self.mem_cache[child]
-                except KeyError:
-                    continue
-                else:
-                    if d >= remaining_depth:
-                        if l >= beta:
-                            # print('ETC L: ', l, u,d, beta)
-                            return l
-                        if u <= alpha:
-                            # print('ETC U: ', l, u,d, alpha)
-                            return u
-
         #Move ordering:
-        moves = self.order_moves(move_state_pairs, state, best_move)
+        try:
+            moves = self.order_moves(move_state_pairs, state, best_move, alpha, beta, remaining_depth)
+        except ETC as cutoff:
+            return cutoff.args[0]
 
         if self.side == state.turn:
             v = -100
