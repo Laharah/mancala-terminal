@@ -1,3 +1,4 @@
+from __future__ import print_function
 def show_board(board):
     top = board.top
     bottom = board.bottom

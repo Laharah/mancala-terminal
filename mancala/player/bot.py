@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 import functools
 import random
 import itertools
@@ -20,7 +22,12 @@ class Bot:
     def available_moves(state):
         # yield from (i for i, v in enumerate(state.current_side[-1:0:-1]) if v != 0)
         side = state.current_side
-        yield from (i for i in reversed(range(len(side) - 1)) if side[i] > 0)
+
+        for i in reversed(xrange(len(side) - 1)):
+            if ord(side[i]) > 0:
+                yield i
+
+        # yield from (i for i in reversed(range(len(side) - 1)) if side[i] > 0)
 
     def estimate_basic(self, state):
         'basic utility, measured by difference between houses'
@@ -34,6 +41,7 @@ class Bot:
         'the estimated utility: store points + 1 for every house that can make it to the store'
         my_side = state.top if self.side == state.TOP else state.bottom
         other_side = state.bottom if self.side == state.TOP else state.top
+        my_side, other_side = [ord(x) for x in my_side], [ord(x) for x in other_side]
         if state.turn == -1:
             if my_side[-1] > other_side[-1]:
                 return 1
@@ -207,6 +215,6 @@ class Bot:
         results = self.mem_cache[state]
         Human_move = results[-1] + 1
         print(state, end=':')
-        print('lower:{}, upper:{}, depth:{}, best_move:{}'.format(*results[:-1],
-                                                                  Human_move))
+        print('lower:{}, upper:{}, depth:{}, best_move:{}'.format(*results[:-1] +
+                                                                  [Human_move]))
         return results[-1]

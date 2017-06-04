@@ -17,10 +17,18 @@ class State:
     BOTTOM = 0
     fmt = 'BBBBBBBBBBBBBBb'
 
-    def __init__(self, seeds=4, *, top=None, bottom=None, turn=0):
+    def __init__(self, seeds=4, top=None, bottom=None, turn=0):
         top = top if top else [seeds] * 6 + [0]
         bottom = bottom if bottom else [seeds] * 6 + [0]
-        self._bstring = struct.pack(self.fmt, *itertools.chain(bottom, top), turn)
+        # print(bottom + top + [turn])
+        # print([type(x[0]) for x in (bottom, top)])
+        if all(isinstance(x[0], str) for x in (top, bottom)):
+            bottom = [ord(x) for x in bottom]
+            top = [ord(x) for x in top]
+        if isinstance(turn, str):
+            turn = ord(turn)
+        self._bstring = struct.pack(self.fmt, *(bottom + top + [turn]))
+        # print(repr(self._bstring))
 
     @property
     def top(self):
@@ -36,7 +44,7 @@ class State:
         if t == 255:
             return -1
         else:
-            return t
+            return ord(t)
 
     @property
     def current_side(self):
@@ -51,7 +59,7 @@ class State:
 
     def __repr__(self):
         return '{}(bottom={}, top={}, turn={})'.format(self.__class__.__name__,
-                                                       self.bottom, self.top, self.turn)
+                                                       repr(self.bottom), repr(self.top), repr(self.turn))
 
     def __eq__(self, other):
         if not isinstance(other, State):
@@ -60,7 +68,7 @@ class State:
         c2 = other.top, other.bottom
         if self.turn == other.turn:
             for s, o in zip(c1, c2):
-                if all(a == b for a, b in itertools.zip_longest(s, o)):
+                if all(a == b for a, b in itertools.izip_longest(s, o)):
                     return True
         return False
 
@@ -112,17 +120,19 @@ def after_move(state, move):
     if state.turn == state.TOP:
         move += 7
 
-    new_vals = list(itertools.chain(state.bottom, state.top))
-    i_cycle = itertools.cycle(range(len(new_vals)))
+    new_vals =  [x for x in itertools.chain(state.bottom, state.top)]
+    if isinstance(new_vals[0], str):
+        new_vals = [ord(x) for x in new_vals]
+    i_cycle = itertools.cycle(xrange(len(new_vals)))
     if state.turn == state.TOP:
-        i_cycle = filter(lambda v: v != 6, i_cycle)
+        i_cycle = itertools.ifilter(lambda v: v != 6, i_cycle)
     else:
-        i_cycle = filter(lambda v: v != 13, i_cycle)
+        i_cycle = itertools.ifilter(lambda v: v != 13, i_cycle)
 
     i_cycle = itertools.dropwhile(lambda i: i <= move, i_cycle)
     seeds = new_vals[move]
     if not seeds:
-        raise IllegalMove('you must choose a house with seeds!')
+        raise IllegalMove('{}: you must choose a house with seeds!'.format(move))
     new_vals[move] = 0
     index = move
 
@@ -159,7 +169,7 @@ def after_move(state, move):
 class Board(State):
     'a mutable wrapper over State'
 
-    def __init__(self, seeds=4, *, top=None, bottom=None, turn=0):
+    def __init__(self, seeds=4, top=None, bottom=None, turn=0):
         self._top = list(top) if top else [seeds] * 6 + [0]
         self._bottom = list(bottom) if bottom else [seeds] * 6 + [0]
         assert len(self._top) == len(
