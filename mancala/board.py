@@ -6,6 +6,7 @@ from .errors import IllegalMove
 from .utils import memo
 
 Score = namedtuple("Score", "bottom, top")
+BINCODE = struct.Struct('BBBBBBBBBBBBBBb')
 
 
 class State:
@@ -15,12 +16,11 @@ class State:
     __slots__ = '_bstring'
     TOP = 1
     BOTTOM = 0
-    fmt = 'BBBBBBBBBBBBBBb'
 
     def __init__(self, seeds=4, *, top=None, bottom=None, turn=0):
         top = top if top else [seeds] * 6 + [0]
         bottom = bottom if bottom else [seeds] * 6 + [0]
-        self._bstring = struct.pack(self.fmt, *itertools.chain(bottom, top), turn)
+        self._bstring = BINCODE.pack(*itertools.chain(bottom, top), turn)
 
     @property
     def top(self):

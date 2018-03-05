@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 'pits two basic bots against eachother, used for benchmarking'
 
 import random
