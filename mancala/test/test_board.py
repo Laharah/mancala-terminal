@@ -105,14 +105,14 @@ def test_opposing_side():
 
 def test_call_steal():
     b1 = Board()
-    b1.bottom[2] = 1
-    b1.bottom[3] = 0
+    b1.bottom[0] = 0
+    b1.bottom[5] = 8
     assert b1.turn == b1.BOTTOM
-    assert b1.top[2] == 4
-    b1(2)
-    assert b1.bottom[2] == 0
-    assert b1.bottom[3] == 5
-    assert b1.top[2] == 0
+    assert b1.top[5] == 4
+    b1(5)
+    assert b1.bottom[5] == 0
+    assert b1.bottom[0] == 6
+    assert b1.top[5] == 0
 
 
 def test_move_on_empty_house():

@@ -141,11 +141,11 @@ def after_move(state, move):
 
     if new_vals[index] == 1:
         opposite = state._opposing_house(index)
-        if 0 < index < 6 and state.turn == state.BOTTOM:
+        if 0 <= index < 6 and state.turn == state.BOTTOM:
             new_vals[index] += new_vals[opposite]
             new_vals[opposite] = 0
 
-        elif 7 < index < 13 and state.turn == state.TOP:
+        elif 7 <= index < 13 and state.turn == state.TOP:
             new_vals[index] += new_vals[opposite]
             new_vals[opposite] = 0
 
