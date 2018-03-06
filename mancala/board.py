@@ -17,7 +17,10 @@ class State:
     TOP = 1
     BOTTOM = 0
 
-    def __init__(self, seeds=4, *, top=None, bottom=None, turn=0):
+    def __init__(self, seeds=4, *, top=None, bottom=None, turn=0, _bstring=None):
+        if _bstring:
+            self._bstring = _bstring
+            return
         top = top if top else [seeds] * 6 + [0]
         bottom = bottom if bottom else [seeds] * 6 + [0]
         self._bstring = BINCODE.pack(*itertools.chain(bottom, top), turn)
