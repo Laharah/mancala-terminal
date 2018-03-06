@@ -20,6 +20,15 @@ static PyObject *py_after_move(PyObject *self, PyObject *args){
     if (PyObject_GetBuffer(buffobj, &view, PyBUF_ANY_CONTIGUOUS | PyBUF_FORMAT) == -1) {
         return NULL;
     }
+
+    if (view.len != sizeof(State)) {
+        char buffer[50];
+        sprintf(buffer, "bytestring must be %lu bytes long!", sizeof(State));
+        PyErr_SetString(PyExc_ValueError, buffer);
+        PyBuffer_Release(&view);
+        return NULL;
+    }
+
     State state;
     memcpy(&state, view.buf, sizeof(state));
     for (int i=0; i < 14; i++) {
@@ -27,6 +36,7 @@ static PyObject *py_after_move(PyObject *self, PyObject *args){
     }
     state.turn++;
     char *aschr = (char*) &state;
+    PyBuffer_Release(&view);
     return Py_BuildValue("y#", aschr, 15);
 }
 
