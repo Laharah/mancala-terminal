@@ -1,6 +1,5 @@
-from distutils.core import setup
-from distutils.extension import Extension
-from Cython.Distutils import build_ext
+from setuptools import setup
+from setuptools.extension import Extension
 
 ext_modules = [
     Extension('cstate',
@@ -8,7 +7,13 @@ ext_modules = [
 ]
 
 setup(
-  name = 'Mancala',
-  cmdclass = {'build_ext': build_ext},
-  ext_modules = ext_modules
+    name = 'Mancala',
+    version= '0.1.0',
+    url='',
+    license='MIT',
+    author='laharah',
+    author_email='laharah22+mc@gmail.com',
+    description='basic mancala game with bot',
+    packages=['mancala'],
+    ext_modules = ext_modules
 )

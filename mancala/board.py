@@ -4,6 +4,7 @@ import struct
 from collections import namedtuple
 from .errors import IllegalMove
 from .utils import memo
+import cstate
 
 Score = namedtuple("Score", "bottom, top")
 BINCODE = struct.Struct('BBBBBBBBBBBBBBb')
@@ -108,55 +109,10 @@ class State:
 
 @memo
 def after_move(state, move):
-    'move is the index that player state.turn wants to use. yields the resulting state'
-    # constructs a looping iterator for placing seeds
-    if not 0 <= move < 6:
-        raise IndexError('houses 0 through 5 only')
-    if state.turn == state.TOP:
-        move += 7
-
-    new_vals = list(itertools.chain(state.bottom, state.top))
-    i_cycle = itertools.cycle(range(len(new_vals)))
-    if state.turn == state.TOP:
-        i_cycle = filter(lambda v: v != 6, i_cycle)
-    else:
-        i_cycle = filter(lambda v: v != 13, i_cycle)
-
-    i_cycle = itertools.dropwhile(lambda i: i <= move, i_cycle)
-    seeds = new_vals[move]
-    if not seeds:
-        raise IllegalMove('you must choose a house with seeds!')
-    new_vals[move] = 0
-    index = move
-
-    while seeds:
-        index = next(i_cycle)
-        new_vals[index] += 1
-        seeds -= 1
-
-    if index != 6 and index != 13:
-        new_turn = state.next_turn()
-    else:
-        new_turn = state.turn
-
-    if new_vals[index] == 1:
-        opposite = state._opposing_house(index)
-        if 0 <= index < 6 and state.turn == state.BOTTOM:
-            new_vals[index] += new_vals[opposite]
-            new_vals[opposite] = 0
-
-        elif 7 <= index < 13 and state.turn == state.TOP:
-            new_vals[index] += new_vals[opposite]
-            new_vals[opposite] = 0
-
-    if sum(new_vals[:6]) == 0 or sum(new_vals[7:-1]) == 0:
-        # game is over
-        new_vals[6] += sum(new_vals[:6])
-        new_vals[-1] += sum(new_vals[7:-1])
-        new_vals[:6] = new_vals[7:-1] = [0] * 6
-        new_turn = -1
-
-    return state.__class__(bottom=new_vals[:7], top=new_vals[7:], turn=new_turn)
+    try:
+        return State(_bstring=cstate.after_move(state._bstring, move))
+    except ValueError:
+        raise IllegalMove("Must choose a house with seeds.") from None
 
 
 class Board(State):
@@ -213,7 +169,7 @@ class Board(State):
         self.turn = state.turn
 
     def __call__(self, move):
-        self._apply(after_move(self, move))
+        self._apply(after_move(self.get_state(), move))
 
     def swap_turn(self):
         self.turn = super().next_turn()

@@ -9,7 +9,9 @@ typedef struct State{
 } State;
 
 
-static PyObject *py_after_move(PyObject *self, PyObject *args){
+static PyObject*
+py_after_move(PyObject *self, PyObject *args)
+{
     PyObject *old_state;
     Py_buffer view;
     PyObject *new_buff;
@@ -46,11 +48,89 @@ static PyObject *py_after_move(PyObject *self, PyObject *args){
     // cast buffer to a state
     State *state = (State*) view.buf;
 
-    for (int i=0; i < 14; i++) {
-        state->board[i] += 1;
-    }
-    state->turn++;
+    /* GAME LOGIC */
 
+    char seeds;
+    char sum_top = 0, sum_bottom = 0;
+    int index;
+    int skip_store;
+    int opposite;
+
+    if (!(move >= 0 && move < 6)) {
+        PyErr_SetString(PyExc_IndexError, "Houses 0 through 5 only.");
+        PyBuffer_Release(&view);
+        return NULL;
+    }
+
+    if (state->turn == TOP){
+        move += 7;
+        skip_store = 6;
+    }
+    else {
+        skip_store = 13;
+    }
+
+    seeds = state->board[move];
+    if (seeds == 0) {
+        PyErr_SetString(PyExc_ValueError, "No seeds in given house.");
+        PyBuffer_Release(&view);
+        return NULL;
+    }
+
+    // distrubute seeds
+    state->board[move] = 0;
+    index = move;
+    while (seeds > 0) {
+        index = (index+1) % 14;
+        if (index != skip_store) {
+            state->board[index]++;
+            seeds--;
+        }
+    }
+
+
+    // seed stealing
+    if (state->board[index] == 1) {
+        opposite = abs(6 - index);
+        if (index < 6) {
+            opposite = 6 + opposite;
+        }
+        else {
+            opposite = 6 - opposite;
+        }
+
+        if ((state->turn == BOTTOM && (index < 6 && index >= 0)) ||
+            (state->turn == TOP && (index >= 7 && index < 13))) {
+            state->board[index] += state->board[opposite];
+            state->board[opposite] = 0;
+        }
+    }
+
+    // turn flip or extra turn
+    if (index != 6 && index != 13) {
+        state->turn = (++state->turn) % 2;
+    }
+
+    // sum bottom
+    for (int i=0; i < 6; i++) {
+        sum_bottom += state->board[i];
+    }
+    // sum top
+    for (int i=7; i < 13; i++) {
+        sum_top += state->board[i];
+    }
+
+    // game over check
+    if (sum_bottom == 0 || sum_top == 0) {
+        state->board[6] += sum_bottom;
+        state->board[13] += sum_top;
+        for (int i=0; i < 13; i++) {
+            if (i != 6) {
+                state->board[i] = 0;
+            }
+        }
+        state->turn = -1;
+    }
 
     PyBuffer_Release(&view);
     return new_buff;
@@ -59,7 +139,9 @@ static PyObject *py_after_move(PyObject *self, PyObject *args){
 // module method table
 static PyMethodDef meths[] = {
     {"after_move", py_after_move, METH_VARARGS,
-    "move is the index that player state.turn wants to use. yields the resulting state"},
+    "after_move(state._bstring, move) -> bytes\n"
+    "move is the index that player state.turn wants to use. yields the resulting "
+    "state _bstring"},
     {NULL, NULL, 0, NULL}
 };
 
