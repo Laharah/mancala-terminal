@@ -20,7 +20,7 @@ class Bot:
     def available_moves(state):
         # yield from (i for i, v in enumerate(state.current_side[-1:0:-1]) if v != 0)
         side = state.current_side
-        yield from (i for i in reversed(range(len(side) - 1)) if side[i] > 0)
+        yield from (i for i in range(5, -1, -1) if side[i] > 0)
 
     def estimate_basic(self, state):
         'basic utility, measured by difference between houses'
@@ -58,7 +58,7 @@ class Bot:
                 canidates += .5
         return canidates
 
-    def order_moves(self, pairs, original, best_move, alpha, beta, remaining_depth):
+    def order_moves(self, pairs, turn, best_move, alpha, beta, remaining_depth):
         'given (move,state) pairs order them by most likely to succeed'
         #cached hints
         #extra_turns
@@ -76,7 +76,7 @@ class Bot:
 
             # we invert for our side so better positions come first, not needed
             # on opposing side)
-            turn = original.turn
+            # turn = original.turn
             sign = -1 if turn == self.side else 1
             index = 1 if turn == self.side else 0
 
@@ -95,7 +95,7 @@ class Bot:
 
             ordered.append((
                 hint,
-                -1 if original.turn == state.turn else 0,
+                -1 if turn == state.turn else 0,
                 # capture,
                 -m,
                 m,
@@ -119,14 +119,14 @@ class Bot:
                 lower, upper = -100, 100
 
         if state.turn == -1 or remaining_depth <= 0:
-            return self.estimate_advanced(state)
+            return self.estimate_basic(state)
 
         move_state_pairs = [(m, after_move(state, m))
                             for m in self.available_moves(state)]
 
         #Move ordering:
         try:
-            moves = self.order_moves(move_state_pairs, state, best_move, alpha, beta, remaining_depth)
+            moves = self.order_moves(move_state_pairs, state.turn, best_move, alpha, beta, remaining_depth)
         except ETC as cutoff:
             return cutoff.args[0]
 
@@ -199,6 +199,7 @@ class Bot:
     def __call__(self, board):
         if self.side is None: self.side = board.turn
         state = board.get_state()
+        # self.iterative_deepening(state, self.search_depth)
         guess = self.last_utility_estimate
         self.mtdf(state, guess=guess, depth=self.search_depth)
         # print(moves)

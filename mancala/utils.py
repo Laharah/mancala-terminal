@@ -1,10 +1,12 @@
 import functools
 
+memo = functools.lru_cache
+
+"""
+
 def memo(func):
-    """
-    memoize a function.
-    WARNING: no limit on cache, no kwargs, hashable arguments only
-    """
+    #memoize a function.
+    #WARNING: no limit on cache, no kwargs, hashable arguments only
     cache = {}
     kwd_mark = object()
 
@@ -21,3 +23,4 @@ def memo(func):
         except TypeError:
             return func(*args)
     return wrapper
+"""

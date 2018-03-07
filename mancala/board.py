@@ -107,7 +107,7 @@ class State:
             return 6 - offset
 
 
-@memo
+@memo()
 def after_move(state, move):
     try:
         return State(_bstring=cstate.after_move(state._bstring, move))
